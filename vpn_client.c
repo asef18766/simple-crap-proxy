@@ -180,7 +180,7 @@ int main( int argc, char *argv[] )
     char    ifname[IFNAMSIZ];
     char    *ipaddr  = NULL;
     char    *netmask = NULL;
-    int     tunfd = -1;
+    int     tapfd = -1;
     
     int                     epfd;       // EPOLL File Descriptor. 
     struct epoll_event      ev;         // Used for EPOLL.
@@ -252,16 +252,16 @@ int main( int argc, char *argv[] )
     //
     // IFF_NO_PI tells the kernel to not provide packet information. 
 
-    if( ( tunfd = tun_alloc( ifname, IFF_TAP | IFF_NO_PI ) ) < 0 )
+    if( ( tapfd = tun_alloc( ifname, IFF_TAP | IFF_NO_PI ) ) < 0 )
     {
         printf( "Create TUN/TAP interface fail!!\n" );
     }
     set_ip( ifname, ipaddr, netmask );
     SSL_write_with_check(ssl_info.ssl, CLIENT_OK, sizeof(CLIENT_OK));
 
-    ev.data.fd = tunfd;
+    ev.data.fd = tapfd;
     ev.events = EPOLLIN | EPOLLET;
-    if (epoll_ctl( epfd, EPOLL_CTL_ADD, tunfd, &ev ) == -1)
+    if (epoll_ctl( epfd, EPOLL_CTL_ADD, tapfd, &ev ) == -1)
     {
         perror("[epoll_ctl]");
         return -1;
@@ -283,10 +283,10 @@ int main( int argc, char *argv[] )
         }
         for( i = 0 ; i < noEvents; i++ )
         {
-            if( events[i].events & EPOLLIN && tunfd == events[i].data.fd )
+            if( events[i].events & EPOLLIN && tapfd == events[i].data.fd )
             {
                 memset( buffer, 0, 1024 );
-                if( ( rcvlen = read( tunfd, buffer, 1024 ) ) < 0 )
+                if( ( rcvlen = read( tapfd, buffer, 1024 ) ) < 0 )
                 {
                     perror( "Reading data" );
                     running = 0;
@@ -311,13 +311,13 @@ int main( int argc, char *argv[] )
             if( events[i].events & EPOLLIN && ssl_info.sock == events[i].data.fd )
             {
                 int data_sz = SSL_read_with_check(ssl_info.ssl, buffer, 1024);
-                if (write(tunfd, buffer, data_sz) != data_sz)
+                if (write(tapfd, buffer, data_sz) != data_sz)
                     perror("[write to tun failure]");
             }
         }
     }
     
-    close( tunfd );
+    close( tapfd );
     
     return 0;
 }
