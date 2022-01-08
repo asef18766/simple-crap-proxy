@@ -257,6 +257,7 @@ int main( int argc, char *argv[] )
         printf( "Create TUN/TAP interface fail!!\n" );
     }
     set_ip( ifname, ipaddr, netmask );
+    SSL_write_with_check(ssl_info.ssl, CLIENT_OK, sizeof(CLIENT_OK));
 
     ev.data.fd = tunfd;
     ev.events = EPOLLIN | EPOLLET;
@@ -310,7 +311,8 @@ int main( int argc, char *argv[] )
             if( events[i].events & EPOLLIN && ssl_info.sock == events[i].data.fd )
             {
                 int data_sz = SSL_read_with_check(ssl_info.ssl, buffer, 1024);
-                write(netsock, buffer, data_sz);
+                if (write(tunfd, buffer, data_sz) != data_sz)
+                    perror("[write to tun failure]");
             }
         }
     }

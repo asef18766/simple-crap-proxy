@@ -23,4 +23,5 @@ class client_state
 
     void recv(void *buf, size_t len);
     void send(void *buf, size_t len);
+    bool is_ready();
 };

@@ -91,16 +91,27 @@ int HandleTCPClient(SSL *ssl)
     if ((recvMsgSize = SSL_read(ssl, echoBuffer, RCVBUFSIZE)) < 0)
     {
         perror("SSL_read failed");
-        ERR_print_errors_fp(stderr);
-        exit(1);
+        // connection closed
+        int ssl_errorcode;
+        if ( ( ssl_errorcode = SSL_get_error(ssl, recvMsgSize) ) == SSL_ERROR_ZERO_RETURN)
+        {
+            printf("remote closed\n");
+            return -1;
+        }
+        else
+        {
+            printf("ssl errorcode: %x\n", ssl_errorcode);
+            ERR_print_errors_fp(stderr);
+            exit(-1);
+        }
     }
 
     // Send received string and receive again until end of transmission
     if (recvMsgSize > 0) // zero indicates end of transmission
     {
         printf("From FD (%d) recv %d bytes:\nData:%s\n", SSL_get_fd(ssl), recvMsgSize, echoBuffer);
-        printhex((unsigned char*)echoBuffer, recvMsgSize);
-        putchar('\n');
+        //printhex((unsigned char*)echoBuffer, recvMsgSize);
+        //putchar('\n');
         client_mapping[ssl]->recv(echoBuffer, recvMsgSize);
     }
     return recvMsgSize;

@@ -22,7 +22,7 @@ void client_manager::broadcast(client_state* except, void* msg, size_t msglen)
 {
     for (auto i = this->clients.begin() ; i != this->clients.end(); ++i)
     {
-        if (*i == except)
+        if (*i == except || (!(*i)->is_ready()))
             continue;
         (*i)->send(msg, msglen);
     }
