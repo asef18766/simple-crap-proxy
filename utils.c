@@ -1,5 +1,7 @@
 #include "utils.h"
 #include <stdio.h>
+#include <openssl/err.h>
+
 void print_ip_packet( unsigned char *packet, int size )
 {
     int ipheaderlen = 0;
@@ -87,4 +89,33 @@ void print_ip_packet( unsigned char *packet, int size )
     
     printf( "\n" );
     printf( "=========================================\n" );
+}
+void printhex(unsigned char *packet, int size)
+{
+    for (int i = 0; i != size; ++i)
+    {
+        printf("%02x ", packet[i]);
+        if (i % 16 == 15)
+            putchar('\n');
+    }
+}
+void SSL_write_with_check(SSL* ssl, void *echoString, ssize_t echoStringLen)
+{
+    if ( SSL_write(ssl, echoString, echoStringLen) != echoStringLen )
+    {
+        perror( "send() sent a different number of bytes than expected");
+        ERR_print_errors_fp(stderr);
+        exit(1);
+    }
+}
+int SSL_read_with_check(SSL* ssl, void *echoBuffer, ssize_t echoBufferLen)
+{
+    int bytesRcvd;
+    if ( ( bytesRcvd = SSL_read( ssl, echoBuffer, echoBufferLen) ) <= 0 )
+    {
+        perror("recv() failed or connection closed prematurely");
+        ERR_print_errors_fp(stderr);
+        exit(1);
+    }
+    return bytesRcvd;
 }
