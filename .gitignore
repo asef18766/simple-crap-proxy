@@ -3,3 +3,4 @@
 server.key
 server.pem
 .vscode
+*.log

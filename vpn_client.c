@@ -228,7 +228,7 @@ int main( int argc, char *argv[] )
     }
 
     ev.data.fd = netsock;
-    ev.events = EPOLLIN | EPOLLET;
+    ev.events = EPOLLIN;
     if (epoll_ctl( epfd, EPOLL_CTL_ADD, netsock, &ev ) == -1)
     {
         perror("[epoll_ctl]");
@@ -260,7 +260,7 @@ int main( int argc, char *argv[] )
     SSL_write_with_check(ssl_info.ssl, CLIENT_OK, sizeof(CLIENT_OK));
 
     ev.data.fd = tapfd;
-    ev.events = EPOLLIN | EPOLLET;
+    ev.events = EPOLLIN;
     if (epoll_ctl( epfd, EPOLL_CTL_ADD, tapfd, &ev ) == -1)
     {
         perror("[epoll_ctl]");

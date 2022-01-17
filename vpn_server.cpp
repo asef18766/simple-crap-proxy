@@ -138,12 +138,12 @@ int main(int argc, char *argv[])
 
     // Add the server socket to the epoll
     ev.data.fd = serverSock;
-    ev.events = EPOLLIN | EPOLLET;
+    ev.events = EPOLLIN;
     epoll_ctl(epfd, EPOLL_CTL_ADD, serverSock, &ev);
 
     // Add STDIN into the EPOLL set.
     ev.data.fd = STDIN_FILENO;
-    ev.events = EPOLLIN | EPOLLET;
+    ev.events = EPOLLIN;
     epoll_ctl(epfd, EPOLL_CTL_ADD, STDIN_FILENO, &ev);
 
     // Initialize OpenSSL
@@ -183,7 +183,10 @@ int main(int argc, char *argv[])
 
         if (noEvents <= 0)
         {
-            printf("No echo requests for 5 secs...Server still alive\n");
+            if (noEvents == 0)
+                printf("No echo requests for 5 secs...Server still alive\n");
+            else
+                perror("[epoll_wait error]");
             continue;
         }
 
@@ -217,7 +220,7 @@ int main(int argc, char *argv[])
                 }
 
                 ev.data.ptr = ssl;
-                ev.events = EPOLLIN | EPOLLET;
+                ev.events = EPOLLIN;
                 epoll_ctl(epfd, EPOLL_CTL_ADD, clientSock, &ev);
                 
                 client_mapping[ssl] = new client_state(ssl);
